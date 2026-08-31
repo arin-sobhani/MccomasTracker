@@ -5,7 +5,7 @@ trends and information on when the gyms are empty/full.
 
 Logs occupancy for all facilities on `connect.recsports.vt.edu/facilityoccupancy`
 (WMH Service Desk, McComas Hall Service Desk, Esports, Bouldering Wall)
-every 30 minutes via GitHub Actions -- runs entirely in the cloud, so your
+every 15 minutes via GitHub Actions -- runs entirely in the cloud, so your
 computer never needs to be on.
 
 ## One heads-up before you run this
@@ -13,7 +13,7 @@ computer never needs to be on.
 The site's `robots.txt` disallows automated access for all bots
 (`Disallow: /`), which looks like a generic default for this vendor
 platform rather than something aimed specifically at the occupancy widget.
-A GET request every 30 minutes to a public page is about as light as
+A GET request every 15 minutes to a public page is still about as light as
 automated traffic gets, but it's worth knowing the site has stated that
 preference -- your call on how you want to run this long-term.
 
@@ -47,11 +47,11 @@ preference -- your call on how you want to run this long-term.
    select **"Read and write permissions"**, and save. (Without this, the
    workflow runs fine but fails to push the updated CSV.)
 
-That's it. The workflow (`.github/workflows/log.yml`) fires every 30
+That's it. The workflow (`.github/workflows/log.yml`) fires every 15
 minutes automatically. `occupancy_logger.py` itself decides whether it's
 actually a weekday, during operating hours, and not a known holiday
 (everything computed in real Eastern time, so it's not thrown off by
-GitHub's UTC clock or daylight saving) -- so most of those 30-minute
+GitHub's UTC clock or daylight saving) -- so most of those 15-minute
 triggers will just skip instantly and only the ones during real gym hours
 will actually log a row and commit.
 
@@ -61,7 +61,7 @@ confirm it's working before waiting for the next real interval.
 
 ## Before you fully trust the data, tune two things
 
-1. **`OPERATING_HOURS` in `occupancy_logger.py`** -- currently 5am-midnight
+1. **`OPERATING_HOURS` in `occupancy_logger.py`** -- currently 7am-midnight
    Mon-Fri, applied to ALL facilities on the page, including War Memorial Hall,
    which is mid-renovation and has had shifting/reduced hours. Check
    current hours at recsports.vt.edu/facilities/ and adjust. Weekends are

@@ -6,7 +6,7 @@ Polls https://connect.recsports.vt.edu/facilityoccupancy (a public page --
 no login needed) and appends one row per facility to a CSV log, so you can
 later analyze trends and figure out the best time to hit the gym.
 
-Meant to run on a schedule (e.g. GitHub Actions, every 30 min) -- see
+Meant to run on a schedule (e.g. GitHub Actions, every 15 min) -- see
 README.md. It's a single lightweight GET request to a public page, so it's
 safe to run this often.
 
@@ -49,11 +49,11 @@ WEEKEND_ENABLED = False
 # Memorial Hall / Esports / Bouldering Wall if their hours differ, since
 # this script currently applies ONE window to all facilities on the page.
 OPERATING_HOURS = {
-    0: ("05:00", "23:59"),  # Monday
-    1: ("05:00", "23:59"),  # Tuesday
-    2: ("05:00", "23:59"),  # Wednesday
-    3: ("05:00", "23:59"),  # Thursday
-    4: ("05:00", "23:59"),  # Friday
+    0: ("07:00", "23:59"),  # Monday
+    1: ("07:00", "23:59"),  # Tuesday
+    2: ("07:00", "23:59"),  # Wednesday
+    3: ("07:00", "23:59"),  # Thursday
+    4: ("07:00", "23:59"),  # Friday
     5: ("08:00", "22:00") if WEEKEND_ENABLED else None,  # Saturday
     6: ("10:00", "23:59") if WEEKEND_ENABLED else None,  # Sunday
 }

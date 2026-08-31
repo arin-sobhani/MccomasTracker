@@ -2,13 +2,13 @@ name: Log gym occupancy
 
 on:
   schedule:
-    # Every 30 minutes, every day. The script itself (using
+    # Every 15 minutes, every day. The script itself (using
     # America/New_York time) decides whether it's actually a weekday
     # during operating hours and not a holiday -- so it's safe to just
     # fire this constantly and let occupancy_logger.py do the filtering.
     # This also sidesteps daylight saving time bugs you'd get trying to
     # hand-pick UTC hours.
-    - cron: "*/30 * * * *"
+    - cron: "*/15 * * * *"
   workflow_dispatch: {}   # lets you manually trigger a run from the Actions tab
 
 permissions:
