@@ -1,0 +1,42 @@
+# Dates to skip when logging (university closures / breaks).
+# One date per line, format YYYY-MM-DD. Lines starting with # are ignored.
+# Pre-filled from the official VT academic calendar (registrar.vt.edu) for 2026-2027.
+# These are a starting point, not guaranteed gym-closure dates -- RecSports sometimes
+# keeps reduced hours during "no classes, offices open" days (Fall Break Oct 9, Spring
+# Break Mar 6-14) rather than closing outright, so those are NOT included below.
+# Cross-check actual closures at https://recsports.vt.edu or the RecSports app before a real break.
+
+# Labor Day
+2026-09-07
+
+# Thanksgiving break
+2026-11-21
+2026-11-22
+2026-11-23
+2026-11-24
+2026-11-25
+2026-11-26
+2026-11-27
+2026-11-28
+2026-11-29
+
+# Winter break (approximate -- verify against posted RecSports hours near the end of Dec)
+2026-12-19
+2026-12-20
+2026-12-21
+2026-12-22
+2026-12-23
+2026-12-24
+2026-12-25
+2026-12-26
+2026-12-27
+2026-12-28
+2026-12-29
+2026-12-30
+2026-12-31
+2027-01-01
+2027-01-02
+2027-01-03
+
+# MLK Day
+2027-01-18

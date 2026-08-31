@@ -1,0 +1,8 @@
+# Analysis output -- regenerate with `python3 analyze.py`
+heatmap_*.png
+
+__pycache__/
+*.pyc
+.venv/
+venv/
+.DS_Store

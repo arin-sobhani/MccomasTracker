@@ -1,0 +1,56 @@
+name: Log gym occupancy
+
+on:
+  schedule:
+    # Every 30 minutes, every day. The script itself (using
+    # America/New_York time) decides whether it's actually a weekday
+    # during operating hours and not a holiday -- so it's safe to just
+    # fire this constantly and let occupancy_logger.py do the filtering.
+    # This also sidesteps daylight saving time bugs you'd get trying to
+    # hand-pick UTC hours.
+    - cron: "*/30 * * * *"
+  workflow_dispatch: {}   # lets you manually trigger a run from the Actions tab
+
+permissions:
+  contents: write
+
+# Only one logging run at a time -- two runs pushing to the same branch
+# would race and one would fail on a non-fast-forward push.
+concurrency:
+  group: occupancy-log
+  cancel-in-progress: false
+
+jobs:
+  log:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - run: pip install requests beautifulsoup4
+
+      - run: python occupancy_logger.py
+
+      - name: Commit and push if the log changed
+        run: |
+          # Most runs are outside operating hours, so the script skips and
+          # occupancy_log.csv may not exist yet. Bail out quietly instead of
+          # failing the job on a `git add` pathspec error.
+          if [ ! -f occupancy_log.csv ]; then
+            echo "No occupancy_log.csv this run (skipped or first run) -- nothing to commit."
+            exit 0
+          fi
+          git config user.name "occupancy-bot"
+          git config user.email "actions@github.com"
+          git add occupancy_log.csv
+          if git diff --staged --quiet; then
+            echo "No change to commit."
+            exit 0
+          fi
+          git commit -m "Log occupancy $(date -u +%Y-%m-%dT%H:%M)Z"
+          # Rebase onto anything pushed since checkout, then push.
+          git pull --rebase --autostash origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
