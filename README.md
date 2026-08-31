@@ -1,5 +1,8 @@
 # VT RecSports Occupancy Tracker
 
+Tracks facility occupancy at VT gyms and logs the data to then show
+trends and information on when the gyms are empty/full.
+
 Logs occupancy for all facilities on `connect.recsports.vt.edu/facilityoccupancy`
 (WMH Service Desk, McComas Hall Service Desk, Esports, Bouldering Wall)
 every 30 minutes via GitHub Actions -- runs entirely in the cloud, so your
@@ -58,9 +61,8 @@ confirm it's working before waiting for the next real interval.
 
 ## Before you fully trust the data, tune two things
 
-1. **`OPERATING_HOURS` in `occupancy_logger.py`** -- currently set from
-   McComas Hall's posted hours (5am-midnight Mon-Fri, shorter on Friday)
-   but applied to ALL facilities on the page, including War Memorial Hall,
+1. **`OPERATING_HOURS` in `occupancy_logger.py`** -- currently 5am-midnight
+   Mon-Fri, applied to ALL facilities on the page, including War Memorial Hall,
    which is mid-renovation and has had shifting/reduced hours. Check
    current hours at recsports.vt.edu/facilities/ and adjust. Weekends are
    off by default (matches "track every weekday" from the original ask)

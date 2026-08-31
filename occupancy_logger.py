@@ -53,7 +53,7 @@ OPERATING_HOURS = {
     1: ("05:00", "23:59"),  # Tuesday
     2: ("05:00", "23:59"),  # Wednesday
     3: ("05:00", "23:59"),  # Thursday
-    4: ("05:00", "14:00"),  # Friday (shorter -- verify)
+    4: ("05:00", "23:59"),  # Friday
     5: ("08:00", "22:00") if WEEKEND_ENABLED else None,  # Saturday
     6: ("10:00", "23:59") if WEEKEND_ENABLED else None,  # Sunday
 }
@@ -83,7 +83,7 @@ def fetch_occupancy():
     resp = requests.get(
         URL,
         timeout=15,
-        headers={"User-Agent": "Mozilla/5.0 (personal gym-occupancy logger; contact: you@vt.edu)"},
+        headers={"User-Agent": "Mozilla/5.0 (personal gym-occupancy logger; contact: arins@vt.edu)"},
     )
     resp.raise_for_status()
     soup = BeautifulSoup(resp.text, "html.parser")
