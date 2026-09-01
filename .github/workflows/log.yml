@@ -2,7 +2,10 @@ name: Log gym occupancy
 
 on:
   schedule:
-    # Every 15 minutes, every day. The script itself (using
+    # Requested every 15 minutes -- but GitHub honours only a small
+    # fraction of high-frequency cron ticks on free repos (observed: one
+    # run every 2.5-5.5 hours). occupancy_logger.py therefore takes several
+    # spaced samples per run rather than one. The script itself (using
     # America/New_York time) decides whether it's actually a weekday
     # during operating hours and not a holiday -- so it's safe to just
     # fire this constantly and let occupancy_logger.py do the filtering.
@@ -23,6 +26,9 @@ concurrency:
 jobs:
   log:
     runs-on: ubuntu-latest
+    # Each run samples 8 times, 4 minutes apart (~30 min), so the job is
+    # deliberately long-lived. Cap it well above that but below the 6h default.
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 

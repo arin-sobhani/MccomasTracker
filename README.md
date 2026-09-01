@@ -47,8 +47,13 @@ preference -- your call on how you want to run this long-term.
    select **"Read and write permissions"**, and save. (Without this, the
    workflow runs fine but fails to push the updated CSV.)
 
-That's it. The workflow (`.github/workflows/log.yml`) fires every 15
-minutes automatically. `occupancy_logger.py` itself decides whether it's
+That's it. The workflow (`.github/workflows/log.yml`) asks for a run every
+15 minutes -- but note that GitHub honours only a small fraction of
+high-frequency cron ticks on free repos, so in practice expect a run every
+few hours. To get more out of each run that *does* fire, each one takes 8
+samples 4 minutes apart (`SAMPLES_PER_RUN` / `SAMPLE_INTERVAL_SECONDS` in
+`occupancy_logger.py`) and drops any sample whose underlying snapshot hasn't
+changed since the last one logged. `occupancy_logger.py` itself decides whether it's
 actually a weekday, during operating hours, and not a known holiday
 (everything computed in real Eastern time, so it's not thrown off by
 GitHub's UTC clock or daylight saving) -- so most of those 15-minute

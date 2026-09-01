@@ -6,7 +6,7 @@ Polls https://connect.recsports.vt.edu/facilityoccupancy (a public page --
 no login needed) and appends one row per facility to a CSV log, so you can
 later analyze trends and figure out the best time to hit the gym.
 
-Meant to run on a schedule (e.g. GitHub Actions, every 15 min) -- see
+Meant to run on a schedule (e.g. GitHub Actions) -- see
 README.md. It's a single lightweight GET request to a public page, so it's
 safe to run this often.
 
@@ -20,11 +20,16 @@ Design choices:
 - Skips any date listed in excluded_dates.txt (holidays/breaks), so those
   don't skew trend data.
 - Fails loudly but harmlessly if the site is down or its HTML changes --
-  it just skips that run rather than logging bad data.
+  it just skips that sample rather than logging bad data.
+- Takes several spaced samples per invocation (see SAMPLES_PER_RUN).
+  GitHub Actions drops the large majority of high-frequency cron ticks, so
+  in practice a "*/15" schedule fires every few hours. Sampling repeatedly
+  inside each run that DOES fire gets far more data points out of it.
 """
 import csv
 import os
 import sys
+import time
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -41,6 +46,15 @@ EXCLUDED_DATES_FILE = os.path.join(SCRIPT_DIR, "excluded_dates.txt")
 # Set True if you want Saturday/Sunday tracked too (McComas is open
 # weekends). Default is weekdays only, per the original spec.
 WEEKEND_ENABLED = False
+
+# Each invocation takes this many samples, spaced this far apart, instead of
+# a single reading. GitHub's scheduler honours only a small fraction of
+# "*/15" ticks, so each run that does fire is worth more than one data point.
+# The source refreshes its numbers about every 5 minutes, so sampling
+# faster than that just re-reads the same snapshot -- which is why identical
+# snapshots are dropped below rather than logged twice.
+SAMPLES_PER_RUN = 8
+SAMPLE_INTERVAL_SECONDS = 240
 
 # Operating window per weekday, 24h local (America/New_York) time.
 # 0=Monday ... 6=Sunday. Set a day to None to always skip it.
@@ -114,28 +128,26 @@ def fetch_occupancy():
     return results, last_update
 
 
-def main():
-    now = datetime.now(LOCAL_TZ)
-    today_str = now.strftime("%Y-%m-%d")
+def last_logged_snapshot():
+    """(date, source_updated_at) of the final row already in the log, or None.
 
-    if today_str in load_excluded_dates():
-        print(f"{today_str} is in excluded_dates.txt (holiday/break) -- skipping.")
-        return
+    Used to avoid re-logging a snapshot the previous run already captured
+    when two runs happen to land close together.
+    """
+    if not os.path.exists(LOG_FILE):
+        return None
+    last = None
+    with open(LOG_FILE, newline="") as f:
+        for row in csv.reader(f):
+            if row:
+                last = row
+    # header is 9 wide; guard against a short/legacy row
+    if not last or len(last) < 9 or last[0] == "timestamp":
+        return None
+    return (last[1], last[8])
 
-    if not within_operating_hours(now):
-        print(f"{now.strftime('%a %H:%M %Z')} is outside configured operating hours -- skipping.")
-        return
 
-    try:
-        rows, last_update = fetch_occupancy()
-    except requests.RequestException as e:
-        print(f"Request failed: {e}", file=sys.stderr)
-        return
-
-    if not rows:
-        print("No occupancy data parsed -- page structure may have changed.", file=sys.stderr)
-        return
-
+def write_rows(now, rows, last_update):
     file_exists = os.path.exists(LOG_FILE)
     with open(LOG_FILE, "a", newline="") as f:
         writer = csv.writer(f)
@@ -149,7 +161,7 @@ def main():
             est_count = round(row["max_occupancy"] * row["current_pct"] / 100)
             writer.writerow([
                 now.isoformat(timespec="seconds"),
-                today_str,
+                now.strftime("%Y-%m-%d"),
                 now.strftime("%A"),
                 now.strftime("%H:%M"),
                 row["facility"],
@@ -159,7 +171,51 @@ def main():
                 last_update,
             ])
 
-    print(f"Logged {len(rows)} facilities at {now.isoformat(timespec='seconds')}")
+
+def main():
+    excluded = load_excluded_dates()
+    previous = last_logged_snapshot()
+    logged = 0
+
+    for i in range(SAMPLES_PER_RUN):
+        if i:
+            time.sleep(SAMPLE_INTERVAL_SECONDS)
+
+        # Recomputed every sample: a run can straddle closing time, and on a
+        # long run it can even straddle midnight into an excluded date.
+        now = datetime.now(LOCAL_TZ)
+        today_str = now.strftime("%Y-%m-%d")
+
+        if today_str in excluded:
+            print(f"{today_str} is in excluded_dates.txt (holiday/break) -- skipping.")
+            continue
+
+        if not within_operating_hours(now):
+            print(f"{now.strftime('%a %H:%M %Z')} is outside configured operating hours -- skipping.")
+            continue
+
+        try:
+            rows, last_update = fetch_occupancy()
+        except requests.RequestException as e:
+            print(f"Request failed: {e}", file=sys.stderr)
+            continue
+
+        if not rows:
+            print("No occupancy data parsed -- page structure may have changed.", file=sys.stderr)
+            continue
+
+        # The page serves a snapshot, not a live figure. Logging the same
+        # snapshot twice would double-count one reading and skew the averages.
+        if last_update and previous == (today_str, last_update):
+            print(f"{now.strftime('%H:%M')}: snapshot unchanged ({last_update}) -- not logging.")
+            continue
+
+        write_rows(now, rows, last_update)
+        previous = (today_str, last_update)
+        logged += len(rows)
+        print(f"{now.strftime('%H:%M')}: logged {len(rows)} facilities (source: {last_update})")
+
+    print(f"Done -- {logged} rows written across {SAMPLES_PER_RUN} samples.")
 
 
 if __name__ == "__main__":
