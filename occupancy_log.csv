@@ -11,3 +11,7 @@ timestamp,date,weekday,time,facility,max_occupancy,current_pct,estimated_count,s
 2026-08-31T19:17:08-04:00,2026-08-31,Monday,19:17,McComas Hall Service Desk,600,46,276,7:12 PM
 2026-08-31T19:17:08-04:00,2026-08-31,Monday,19:17,Esports,55,13,7,7:12 PM
 2026-08-31T19:17:08-04:00,2026-08-31,Monday,19:17,Bouldering Wall,8,100,8,7:12 PM
+2026-08-31T21:58:00-04:00,2026-08-31,Monday,21:58,WMH Service Desk,1200,36,432,9:57 PM
+2026-08-31T21:58:00-04:00,2026-08-31,Monday,21:58,McComas Hall Service Desk,600,47,282,9:57 PM
+2026-08-31T21:58:00-04:00,2026-08-31,Monday,21:58,Esports,55,33,18,9:57 PM
+2026-08-31T21:58:00-04:00,2026-08-31,Monday,21:58,Bouldering Wall,8,0,0,9:57 PM
